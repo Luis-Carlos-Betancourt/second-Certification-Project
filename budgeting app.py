@@ -4,42 +4,44 @@ class Category:
         self.name = name
 
     def deposit(self, amount, description=""):
+        # Record a positive financial entry
         self.ledger.append({"amount": amount, "description": description})
 
     def withdraw(self, amount, description=""):
+        # Deduct funds only if balance is sufficient
         if self.check_funds(amount):
             self.ledger.append({"amount": -abs(amount), "description": description})
             return True
-        else:
-            return False
+        return False
 
     def get_balance(self):
+        # Calculate current net balance from ledger history
         balance = 0
         for transaction in self.ledger:
             balance += transaction["amount"]
         return balance
 
     def check_funds(self, amount):
+        # Validate transaction amount before processing
         if amount <= 0 or not isinstance(amount, (int, float)):
             return
-        if self.get_balance() >= amount:
-            return True
-        else:
-            return False
+        return self.get_balance() >= amount
 
     def transfer(self, amount, category):
+        # Move funds between categories if balance permits
         if self.check_funds(amount):
             self.withdraw(amount, f"Transfer to {category.name}")
             category.deposit(amount, f"Transfer from {self.name}")
             return True
-        else:
-            return False
+        return False
 
     def __str__(self):
+        # Build category summary receipt
         title = self.name.center(30, "*") + "\n"
         items = ""
 
         for transaction in self.ledger:
+            # Truncate description and format amount to fit layout
             desc = transaction["description"][:23]
             amount = f"{transaction['amount']:.2f}"
             amount = amount[:7]
@@ -50,6 +52,7 @@ class Category:
 
 
 def create_spend_chart(categories):
+    # Calculate spending per category
     spendings = []
     for category in categories:
         total_spent = 0
@@ -60,6 +63,7 @@ def create_spend_chart(categories):
 
     total_all_categories = sum(spendings)
 
+    # Determine percentage per category (rounded down to nearest 10)
     percentages = []
     for spending in spendings:
         if total_all_categories > 0:
@@ -69,6 +73,7 @@ def create_spend_chart(categories):
             percentage = 0
         percentages.append(percentage)
 
+    # Build vertical chart visual
     chart = "Percentage spent by category\n"
 
     for i in range(100, -1, -10):
@@ -80,8 +85,10 @@ def create_spend_chart(categories):
                 chart += "   "
         chart += "\n"
 
+    # Add axis separator
     chart += "    " + "-" * (len(categories) * 3 + 1) + "\n"
 
+    # Transpose category names to vertical orientation
     max_len = max([len(cat.name) for cat in categories])
 
     for i in range(max_len):
@@ -97,6 +104,7 @@ def create_spend_chart(categories):
     return chart
 
 
+# Execution Example
 food = Category("Food")
 food.deposit(1000, "initial deposit")
 food.withdraw(10.15, "groceries")
